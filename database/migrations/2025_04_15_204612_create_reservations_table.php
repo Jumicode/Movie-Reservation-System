@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('showtime_id')->constrained()->onDelete('cascade');
+            $table->string('seat_number')->nullable();
             $table->timestamps();
         });
     }
