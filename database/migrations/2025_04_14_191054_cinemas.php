@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('cinemas', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->unique();
+            $table->integer('capacity')->unsigned();
             $table->timestamps();
         });
     }
