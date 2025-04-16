@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use App\Models\User;
 use App\Models\Showtime;
 
@@ -67,7 +68,12 @@ class ReservationResource extends Resource
                     ->searchable()
                     ->sortable(),
                     
-    
+                 TextColumn::make('user.email') // Añadimos la columna de email del usuario
+                    ->label('Correo Electrónico')
+                    ->searchable()
+                    ->sortable(),
+                  
+
                 TextColumn::make('showtime.movie.title')
                     ->label('Película')
                     ->searchable()
@@ -102,7 +108,18 @@ class ReservationResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-               
+                Filter::make('user_email')
+                ->form([
+                    Forms\Components\TextInput::make('email')
+                        ->label('Correo Electrónico del Usuario'),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query->when($data['email'], function (Builder $query, $email) {
+                        return $query->whereHas('user', function (Builder $userQuery) use ($email) {
+                            return $userQuery->where('email', 'like', '%' . $email . '%');
+                        });
+                    });
+                }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
