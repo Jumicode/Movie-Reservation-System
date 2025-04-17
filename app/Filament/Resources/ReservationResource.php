@@ -30,8 +30,8 @@ class ReservationResource extends Resource
         return $form
             ->schema([
                 Select::make('user_id')
-                    ->label('Usuario')
-                    ->relationship('user', 'name') 
+                    ->label('Email del usuario')
+                    ->relationship('user', 'email') 
                     ->searchable()
                     ->preload(),
                     
