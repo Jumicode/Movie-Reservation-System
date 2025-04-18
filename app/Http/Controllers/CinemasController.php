@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cinemas;
+use App\Models\Cinema;
 use Illuminate\Http\Request;
 
 class CinemasController extends Controller
@@ -12,54 +12,31 @@ class CinemasController extends Controller
      */
     public function index()
     {
-        //
-    }
+        $cinemas = Cinema::all();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+        return response()->json($cinemas);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Cinemas $cinemas)
+    public function show(Cinema $cinemas)
     {
-        //
+     
+        $cinemas = Cinema::find($cinemas->id);
+        if (!$cinemas) {
+            return response()->json(['message' => 'Cinemas not found'], 404);
+        }
+        return response() -> json([
+   
+            'id'         => $cinemas->id,
+            'name'       => $cinemas->name,
+            'capacity'   => $cinemas->capacity,
+         
+            ]);
+
+
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Cinemas $cinemas)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Cinemas $cinemas)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Cinemas $cinemas)
-    {
-        //
-    }
 }

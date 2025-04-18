@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MovieController;
+use App\Http\Controllers\CinemasController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -13,6 +14,8 @@ Route::middleware('auth:api')->group(function (){
 
 Route::get('movies',[MovieController::class,'index']);
 Route::get('movies/{movie}',[MovieController::class,'show']);
+Route::get('cinemas',[CinemasController::class,'index']);
+Route::get('cinemas/{cinemas}',[CinemasController::class,'show']);
 Route::post('logout', [AuthController::class, 'logout']);
 Route::post('me', [AuthController::class, 'me']);
 
