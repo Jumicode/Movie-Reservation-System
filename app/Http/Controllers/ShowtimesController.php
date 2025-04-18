@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Showtimes;
+use App\Models\Showtime;
 use Illuminate\Http\Request;
 
 class ShowtimesController extends Controller
@@ -12,54 +12,29 @@ class ShowtimesController extends Controller
      */
     public function index()
     {
-        //
-    }
+        $showtimes = Showtime::all();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+        return response()->json($showtimes);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Showtimes $showtimes)
+    public function show(Showtime $showtimes)
     {
-        //
+        $showtimes = Showtime::find($showtimes->id);
+        if(!$showtimes){
+            return response()->json(['message' => 'Showtimes not found'], 404);
+        }
+        return response()->json([
+            'id'         => $showtimes->id,
+            'movie_id'   => $showtimes->movie_id,
+            'cinema_id'  => $showtimes->cinema_id,
+            'start_time' => $showtimes->start_time,
+            'end_time'   => $showtimes->end_time,
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Showtimes $showtimes)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Showtimes $showtimes)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Showtimes $showtimes)
-    {
-        //
-    }
 }
