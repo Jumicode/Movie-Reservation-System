@@ -12,6 +12,7 @@ Route::post('login', [AuthController::class, 'login']);
 Route::middleware('auth:api')->group(function (){
 
 Route::get('movies',[MovieController::class,'index']);
+Route::get('movies/{movie}',[MovieController::class,'show']);
 Route::post('logout', [AuthController::class, 'logout']);
 Route::post('me', [AuthController::class, 'me']);
 
