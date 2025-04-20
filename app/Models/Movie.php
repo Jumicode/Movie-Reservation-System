@@ -18,6 +18,12 @@ class Movie extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function showtimes()
+    {
+        return $this->hasMany(Showtime::class);
+    }
+
     public function getPosterUrlAttribute()
     {
         return asset('storage/' . $this->poster_path);

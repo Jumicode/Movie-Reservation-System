@@ -3,59 +3,29 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ShowtimeResource\Pages;
-use App\Filament\Resources\ShowtimeResource\RelationManagers;
 use App\Models\Showtime;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\TextInput;
-use App\Models\Movie;
-use App\Models\Cinema;
+use Filament\Resources\Resource;
 
 class ShowtimeResource extends Resource
 {
     protected static ?string $model = Showtime::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-clock';
+    protected static ?string $navigationLabel = 'Funciones';
+    protected static ?string $navigationGroup = 'Cine';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Select::make('movie_id')
-                    ->label('Película')
-                    ->relationship('movie', 'title')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-    
-                Select::make('cinema_id')
-                    ->label('Sala de Cine')
-                    ->relationship('cinema', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-    
-                DateTimePicker::make('start_time')
-                    ->label('Fecha y Hora de Inicio')
-                    ->required()
-                    ->displayFormat('d/m/Y H:i')
-                    ->withoutSeconds(),
-    
-                TextInput::make('price')
-                    ->label('Precio')
-                    ->numeric()
-                    ->required()
-                    ->minValue(0)
-                    ->step(0.01),
+                Forms\Components\Select::make('hall_id')
+                    ->relationship('hall', 'name')->required(),
+                Forms\Components\Select::make('movie_id')
+                    ->relationship('movie', 'title')->required(),
+                Forms\Components\DateTimePicker::make('starts_at')->required(),
             ]);
     }
 
@@ -63,57 +33,16 @@ class ShowtimeResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('movie.title')
-                    ->label('Película')
-                    ->searchable()
-                    ->sortable(),
-    
-                TextColumn::make('cinema.name')
-                    ->label('Sala')
-                    ->searchable()
-                    ->sortable(),
-    
-                TextColumn::make('start_time')
-                    ->label('Inicio')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
-    
-                TextColumn::make('price')
-                    ->label('Precio')
-                    ->money('USD'), 
-    
-                TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-    
-                TextColumn::make('updated_at')
-                    ->label('Actualizado')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                Filter::make('upcoming')
-                    ->query(fn (Builder $query): Builder => $query->where('start_time', '>', now())),
+                Tables\Columns\TextColumn::make('hall.name')->label('Sala'),
+                Tables\Columns\TextColumn::make('movie.title')->label('Película')->searchable(),
+                Tables\Columns\TextColumn::make('starts_at')->dateTime()->sortable(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

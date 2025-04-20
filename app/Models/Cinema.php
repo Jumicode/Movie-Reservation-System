@@ -8,12 +8,18 @@ class Cinema extends Model
 {
     protected $fillable = [
         'name',
-        'capacity',
+        'address',
+        'city',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function halls()
+    {
+        return $this->hasMany(Hall::class);
+    }
 }
  
