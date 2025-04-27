@@ -28,7 +28,7 @@ class Seat extends Model
         ->withTimestamps();
     }
 
-    public function getCodeAttribute(): string
+    public function getCodeAttribute()
     {
         return "{$this->row}{$this->number}";
     }

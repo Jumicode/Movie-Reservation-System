@@ -26,8 +26,7 @@ public function showtime()
 
 public function seats()
 {
-    return $this->belongsToMany(Seat::class, 'reservation_seat')
-                ->withTimestamps();
+    return $this->belongsToMany(Seat::class);
 }
 
 }
