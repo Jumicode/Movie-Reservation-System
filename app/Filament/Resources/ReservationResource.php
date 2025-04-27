@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Forms\Components\BelongsToManyMultiSelect;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\MultiSelect;
+use Filament\Forms\Components\TextInput;
 
 class ReservationResource extends Resource
 {
@@ -35,7 +36,11 @@ class ReservationResource extends Resource
                     ->label('Función')
                     ->reactive()     // 👉 para que al cambiar se recalcule seats
                     ->required(),
-    
+
+                    TextInput::make('price')
+                    ->label('Precio')
+                    ->required(),
+            
                 MultiSelect::make('seats')
                     ->label('Asientos')
                     ->options(function (callable $get) {
@@ -55,7 +60,7 @@ class ReservationResource extends Resource
                             ->pluck('code', 'id')
                             ->toArray();
                     })
-                    ->preload()      // opcional, carga todo en un solo request
+                    ->preload()     
                     ->required(),
             ]);
     }
@@ -67,6 +72,7 @@ class ReservationResource extends Resource
                 Tables\Columns\TextColumn::make('user.email')->label('Email del Usuario')->searchable(),
                 Tables\Columns\TextColumn::make('showtime.movie.title')->label('Película'),
                 Tables\Columns\TextColumn::make('showtime.starts_at')->label('Función')->dateTime(),
+                Tables\Columns\TextColumn::make('price')->label('Precio')->money('usd'),
                 Tables\Columns\TagsColumn::make('seats')
                 ->label('Asientos')
                 ->getStateUsing(fn ($record) => 

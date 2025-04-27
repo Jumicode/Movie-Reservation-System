@@ -12,6 +12,7 @@ class Reservation extends Model
   protected $fillable = [
     'user_id',
     'showtime_id',
+    'price'
 ];
 
 public function user()
