@@ -14,7 +14,9 @@ class Showtime extends Model
        'starts_at',
    ];
 
-   protected $dates = ['starts_at'];
+   protected $casts = [
+    'starts_at' => 'datetime',
+    ];
 
    public function hall()
    {

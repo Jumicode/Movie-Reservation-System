@@ -34,7 +34,10 @@ class ReservationResource extends Resource
                 Select::make('showtime_id')
                     ->relationship('showtime', 'starts_at')
                     ->label('Función')
-                    ->reactive()     // 👉 para que al cambiar se recalcule seats
+                    ->getOptionLabelFromRecordUsing(function (Showtime $record): string {
+                        return $record->movie->title . ' - ' . $record->starts_at->format('d/m/Y H:i');
+                    }) 
+                    ->reactive()     
                     ->required(),
 
                     TextInput::make('price')
