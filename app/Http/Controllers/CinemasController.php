@@ -23,7 +23,6 @@ class CinemasController extends Controller
      */
     public function show(Cinema $cinemas)
     {
-     
         $cinemas = Cinema::find($cinemas->id);
         if (!$cinemas) {
             return response()->json(['message' => 'Cinemas not found'], 404);
@@ -35,8 +34,5 @@ class CinemasController extends Controller
             'capacity'   => $cinemas->capacity,
          
             ]);
-
-
     }
-
 }
