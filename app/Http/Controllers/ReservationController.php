@@ -4,24 +4,39 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservation;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class ReservationController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-      $reservation = Reservation::all();
-      return response()->json($reservation);
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $user = $request->user();
+    
+
+        $reservations = Reservation::with('seats')
+            ->where('user_id', $user->id)
+            ->get();
+    
+     
+        $result = $reservations->map(function ($reservation) {
+            return [
+                'id'           => $reservation->id,
+                'showtime_id'  => $reservation->showtime_id,
+                'price'        => $reservation->price,
+                'seats'        => $reservation->seats->map(fn($seat) => [
+                    'id'   => $seat->id,
+                    'code' => $seat->code,   // usa el accessor getCodeAttribute()
+                ]),
+                'created_at'   => $reservation->created_at,
+                'updated_at'   => $reservation->updated_at,
+            ];
+        });
+    
+        return response()->json($result);
     }
 
     /**
@@ -70,45 +85,31 @@ class ReservationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Reservation $reservation)
+    public function show(Request $request, Reservation $reservation)
     {
-        $reservation = Reservation::find($reservation->id);
-        if(!$reservation) {
-            return response()->json(['message' => 'Reservation not found'], 404);
+       
+        if ($request->user()->id !== $reservation->user_id) {
+            return response()->json([
+                'message' => 'No tienes permiso para ver esta reserva.'
+            ], Response::HTTP_FORBIDDEN);
         }
 
+   
+        $reservation->load('seats');
+
+       
         return response()->json([
-            'id' => $reservation->id,
-            'user_id' => $reservation->user_id,
-            'showtime_id' => $reservation->showtime_id,
-            'seats' => $reservation->seats,
-            'price' => $reservation->price,
-            'created_at' => $reservation->created_at,
-            'updated_at' => $reservation->updated_at,
+            'id'           => $reservation->id,
+            'user_id'      => $reservation->user_id,
+            'showtime_id'  => $reservation->showtime_id,
+            'seats'        => $reservation->seats->map(fn($seat) => [
+                'id'   => $seat->id,
+                'code' => $seat->code,        // asume getCodeAttribute()
+            ]),
+            'price'       => $reservation->price,
+            'created_at'  => $reservation->created_at,
+            'updated_at'  => $reservation->updated_at,
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Reservation $reservation)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Reservation $reservation)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Reservation $reservation)
-    {
-        //
-    }
 }
