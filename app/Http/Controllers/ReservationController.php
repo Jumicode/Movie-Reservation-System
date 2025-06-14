@@ -49,7 +49,6 @@ class ReservationController extends Controller
             'showtime_id' => 'required|integer|exists:showtimes,id',
             'seats' => 'required|array|min:1',
             'seats.*' => 'required|integer|exists:seats,id',
-            'price' => 'required|numeric|min:0',
         ]);
 
         //  Verify that the selected seats belong to the showtime
@@ -75,12 +74,15 @@ class ReservationController extends Controller
         if ($alreadyReserved) {
             return response()->json(['message' => 'One or more seats are already reserved for this showtime'], 409);
         }
+        // Calculate the total price based on the seats
+        $pricePerSeat = 2.5;
+        $totalPrice = count($request->seats) * $pricePerSeat;
 
         // Create the reservation
         $reservation = Reservation::create([
             'user_id' => $request->user_id,
             'showtime_id' => $request->showtime_id,
-            'price' => $request->price,
+            'price' => $totalPrice,
         ]);
 
         $reservation->seats()->sync($request->seats);
