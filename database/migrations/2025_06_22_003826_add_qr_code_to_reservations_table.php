@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cinemas', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->integer('capacity')->unsigned();
-            $table->timestamps();
+        Schema::table('reservations', function (Blueprint $table) {
+            $table->string('qr_code_path')->nullable()->after('price');
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cinemas');
+        Schema::table('reservations', function (Blueprint $table) {
+            //
+        });
     }
 };
