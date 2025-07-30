@@ -6,6 +6,7 @@ use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Models\Showtime;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class ReservationController extends Controller
 {
     /**
@@ -84,9 +85,7 @@ class ReservationController extends Controller
             'showtime_id' => $request->showtime_id,
             'price' => $totalPrice,
         ]);
-
         $reservation->seats()->sync($request->seats);
-
         $reservation->load('seats');
 
         $seats = $reservation->seats->map(fn($seat) => [
@@ -94,12 +93,25 @@ class ReservationController extends Controller
             'code' => $seat->code,
         ]);
 
+        // Contenido del QR (puedes personalizarlo)
+        $qrContent = json_encode([
+            'reservation_id' => $reservation->id,
+            'user_id' => $reservation->user_id,
+            'showtime_id' => $reservation->showtime_id,
+            'seats' => $seats,
+            'price' => $reservation->price,
+        ]);
+
+        // Generar QR como imagen PNG en base64 usando GD
+        $qrImage = base64_encode(QrCode::format('svg')->size(250)->generate($qrContent));
+
         return response()->json([
             'id' => $reservation->id,
             'user_id' => $reservation->user_id,
             'showtime_id' => $reservation->showtime_id,
             'seats' => $seats,
             'price' => $reservation->price,
+            'qr_code' => $qrImage, // base64 PNG
             'created_at' => $reservation->created_at,
             'updated_at' => $reservation->updated_at,
         ], 201);
