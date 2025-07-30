@@ -24,14 +24,16 @@ RUN apk add --no-cache nginx \
     supervisor \
     git \
     unzip \
-    libxml2-dev \ # <--- ¡Añadido aquí!
+    libxml2-dev # <--- ¡Aquí se eliminó el ";"!
     # También es una buena práctica instalar las dependencias de GD como libpng-dev, libjpeg-turbo-dev, etc.
     # aunque a veces php-gd ya las trae como dependencias transitivas.
     # Si gd falla más adelante, podríamos necesitar añadir:
     # libpng-dev \
     # libjpeg-turbo-dev \
     # freetype-dev \
-    ;
+    ; # <--- Este ";" al final de "docker-php-ext-install" SÍ es correcto para encadenar comandos si los hubiera.
+      # Sin embargo, si es el último comando en la línea, se puede omitir.
+      # Para claridad y consistencia, lo dejamos solo cuando hay más de un comando en la misma línea RUN.
 
 # AHORA, habilita las extensiones usando docker-php-ext-install
 # Esto es crucial para que PHP las cargue
@@ -50,8 +52,8 @@ RUN docker-php-ext-install pdo_mysql \
     gd \
     zip \
     intl \
-    mysqli \
-    ;
+    mysqli; # Puedes dejar este ; o quitarlo si es el último comando en la línea.
+             # Para la claridad de que es un solo comando largo, lo dejaré.
 
 # Descarga e instala Composer de forma global en el contenedor.
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
