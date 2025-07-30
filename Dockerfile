@@ -36,10 +36,7 @@ RUN apk add --no-cache \
     # Para 'curl'
     curl-dev \
     # Para 'pdo_mysql' y 'mysqli'
-    mariadb-client-dev \
-    # Elimina los paquetes php82-dom, php82-xml, php82-simplexml, php82-gd, php82-zip, php82-intl
-    # ya que ahora las vamos a instalar/compilar usando docker-php-ext-install con sus dev-dependencies
-    ;
+    mariadb-client-dev
 
 # AHORA, habilita las extensiones usando docker-php-ext-install
 # Esto es crucial para que PHP las cargue
