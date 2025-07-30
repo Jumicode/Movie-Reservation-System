@@ -1,10 +1,10 @@
 # Usa la imagen base de PHP-FPM con Alpine Linux para PHP 8.2
 FROM php:8.2-fpm-alpine
 
-# Instala build-base para asegurar que las herramientas de compilación estén presentes
-# Instala dependencias del sistema y extensiones de PHP comunes para Laravel.
+# Instala build-base para asegurar que las herramientas de compilación estén presentes.
+# También instala dependencias del sistema y extensiones de PHP comunes para Laravel.
 RUN apk add --no-cache \
-    build-base \ # Herramientas de compilación básicas (gcc, g++, make, libc-dev)
+    build-base \
     nginx \
     supervisor \
     git \
