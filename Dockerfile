@@ -1,17 +1,14 @@
 # Usa la imagen base de PHP-FPM con Alpine Linux para PHP 8.2
 FROM php:8.2-fpm-alpine
 
-# Instala build-base para asegurar que las herramientas de compilación estén presentes.
-# Instala dependencias del sistema y extensiones de PHP comunes para Laravel.
-# Elimina los paquetes php82-* de aquí, ya que docker-php-ext-install los manejará.
-RUN apk add --no-cache \
+# Instala herramientas del sistema y dependencias de desarrollo.
+RUN apk update && apk upgrade && \ # Agregamos update y upgrade
+    apk add --no-cache \
     build-base \
     nginx \
     supervisor \
     git \
     unzip \
-    php82-pecl-redis \
-    # Dependencias de desarrollo para extensiones que se compilan con docker-php-ext-install
     libxml2-dev \
     libpng-dev \
     libjpeg-turbo-dev \
@@ -19,12 +16,15 @@ RUN apk add --no-cache \
     libzip-dev \
     icu-dev \
     curl-dev \
-    mariadb-client-dev
+    mariadb-client-dev \
+    # Esto es solo si todavía fallaba la anterior. Si funcionaba, mantén la original.
+    # Si quieres probar redis directamente via apk de nuevo, prueba php-redis en vez de php82-pecl-redis
+    # php-redis \
+    ;
 
-# Habilita las extensiones usando docker-php-ext-install
-# Esto es crucial para que PHP las cargue.
-# Todas las extensiones listadas aquí serán compiladas desde el código fuente
-# utilizando las dependencias -dev instaladas previamente.
+# Habilita e instala extensiones de PHP.
+# Se usa docker-php-ext-install para las extensiones nativas de PHP
+# y pecl install para extensiones PECL como redis.
 RUN docker-php-ext-install pdo_mysql \
     dom \
     xml \
@@ -40,7 +40,10 @@ RUN docker-php-ext-install pdo_mysql \
     gd \
     zip \
     intl \
-    mysqli
+    mysqli && \
+    # Instala la extensión Redis a través de PECL
+    pecl install redis && \
+    docker-php-ext-enable redis;
 
 # Descarga e instala Composer de forma global en el contenedor.
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
