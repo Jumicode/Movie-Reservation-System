@@ -1,8 +1,15 @@
 # Usa la imagen base de PHP-FPM con Alpine Linux para PHP 8.2
 FROM php:8.2-fpm-alpine
 
+# Instala build-base para asegurar que las herramientas de compilación estén presentes
 # Instala dependencias del sistema y extensiones de PHP comunes para Laravel.
-RUN apk add --no-cache nginx \
+RUN apk add --no-cache \
+    build-base \ # Herramientas de compilación básicas (gcc, g++, make, libc-dev)
+    nginx \
+    supervisor \
+    git \
+    unzip \
+    # Paquetes PHP precompilados (para los que existen y son estables)
     php82-mysqli \
     php82-pdo_mysql \
     php82-session \
@@ -12,21 +19,27 @@ RUN apk add --no-cache nginx \
     php82-fileinfo \
     php82-phar \
     php82-opcache \
-    php82-curl \
     php82-pecl-redis \
-    supervisor \
-    git \
-    unzip \
-    # Dependencias para 'dom', 'xml', 'simplexml'
+    # Dependencias de desarrollo para extensiones que se compilan con docker-php-ext-install
+    # Para 'dom', 'xml', 'simplexml'
     libxml2-dev \
-    # Dependencias para 'gd'
+    # Para 'gd' (funciones de imagen)
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
-    # Dependencias para 'zip'
+    # Puedes añadir libwebp-dev si necesitas soporte para WebP en GD
+    # libwebp-dev \
+    # Para 'zip'
     libzip-dev \
-    # Dependencias para 'intl'
-    icu-dev
+    # Para 'intl'
+    icu-dev \
+    # Para 'curl'
+    curl-dev \
+    # Para 'pdo_mysql' y 'mysqli'
+    mariadb-client-dev \
+    # Elimina los paquetes php82-dom, php82-xml, php82-simplexml, php82-gd, php82-zip, php82-intl
+    # ya que ahora las vamos a instalar/compilar usando docker-php-ext-install con sus dev-dependencies
+    ;
 
 # AHORA, habilita las extensiones usando docker-php-ext-install
 # Esto es crucial para que PHP las cargue
