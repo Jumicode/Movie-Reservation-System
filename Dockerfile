@@ -2,7 +2,7 @@
 FROM php:8.2-fpm-alpine
 
 # Instala dependencias del sistema y extensiones de PHP comunes para Laravel.
-# Primero instalamos los paquetes con apk add
+# Primero instalamos los paquetes con apk add, incluyendo libxml2-dev
 RUN apk add --no-cache nginx \
     php82-mysqli \
     php82-pdo_mysql \
@@ -23,7 +23,15 @@ RUN apk add --no-cache nginx \
     php82-pecl-redis \
     supervisor \
     git \
-    unzip
+    unzip \
+    libxml2-dev \ # <--- ¡Añadido aquí!
+    # También es una buena práctica instalar las dependencias de GD como libpng-dev, libjpeg-turbo-dev, etc.
+    # aunque a veces php-gd ya las trae como dependencias transitivas.
+    # Si gd falla más adelante, podríamos necesitar añadir:
+    # libpng-dev \
+    # libjpeg-turbo-dev \
+    # freetype-dev \
+    ;
 
 # AHORA, habilita las extensiones usando docker-php-ext-install
 # Esto es crucial para que PHP las cargue
@@ -43,10 +51,6 @@ RUN docker-php-ext-install pdo_mysql \
     zip \
     intl \
     mysqli \
-    # Para redis, como es una extensión PECL, se habilita diferente
-    # No la incluyas aquí, ya está instalada por el paquete php82-pecl-redis
-    # Si Composer sigue quejándose de Redis, necesitaríamos un paso adicional para ella.
-    # Por ahora, nos enfocamos en intl, zip, gd que son los que causan el error.
     ;
 
 # Descarga e instala Composer de forma global en el contenedor.
