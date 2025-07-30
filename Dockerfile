@@ -2,13 +2,9 @@
 FROM php:8.2-fpm-alpine
 
 # Instala dependencias del sistema y extensiones de PHP comunes para Laravel.
-# Primero instalamos los paquetes con apk add, incluyendo libxml2-dev
 RUN apk add --no-cache nginx \
     php82-mysqli \
     php82-pdo_mysql \
-    php82-dom \
-    php82-xml \
-    php82-simplexml \
     php82-session \
     php82-json \
     php82-mbstring \
@@ -17,14 +13,20 @@ RUN apk add --no-cache nginx \
     php82-phar \
     php82-opcache \
     php82-curl \
-    php82-gd \
-    php82-zip \
-    php82-intl \
     php82-pecl-redis \
     supervisor \
     git \
     unzip \
-    libxml2-dev
+    # Dependencias para 'dom', 'xml', 'simplexml'
+    libxml2-dev \
+    # Dependencias para 'gd'
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    # Dependencias para 'zip'
+    libzip-dev \
+    # Dependencias para 'intl'
+    icu-dev
 
 # AHORA, habilita las extensiones usando docker-php-ext-install
 # Esto es crucial para que PHP las cargue
