@@ -2,44 +2,29 @@
 FROM php:8.2-fpm-alpine
 
 # Instala build-base para asegurar que las herramientas de compilación estén presentes.
-# También instala dependencias del sistema y extensiones de PHP comunes para Laravel.
+# Instala dependencias del sistema y extensiones de PHP comunes para Laravel.
+# Elimina los paquetes php82-* de aquí, ya que docker-php-ext-install los manejará.
 RUN apk add --no-cache \
     build-base \
     nginx \
     supervisor \
     git \
     unzip \
-    # Paquetes PHP precompilados (para los que existen y son estables)
-    php82-mysqli \
-    php82-pdo_mysql \
-    php82-session \
-    php82-json \
-    php82-mbstring \
-    php82-tokenizer \
-    php82-fileinfo \
-    php82-phar \
-    php82-opcache \
     php82-pecl-redis \
     # Dependencias de desarrollo para extensiones que se compilan con docker-php-ext-install
-    # Para 'dom', 'xml', 'simplexml'
     libxml2-dev \
-    # Para 'gd' (funciones de imagen)
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
-    # Puedes añadir libwebp-dev si necesitas soporte para WebP en GD
-    # libwebp-dev \
-    # Para 'zip'
     libzip-dev \
-    # Para 'intl'
     icu-dev \
-    # Para 'curl'
     curl-dev \
-    # Para 'pdo_mysql' y 'mysqli'
     mariadb-client-dev
 
-# AHORA, habilita las extensiones usando docker-php-ext-install
-# Esto es crucial para que PHP las cargue
+# Habilita las extensiones usando docker-php-ext-install
+# Esto es crucial para que PHP las cargue.
+# Todas las extensiones listadas aquí serán compiladas desde el código fuente
+# utilizando las dependencias -dev instaladas previamente.
 RUN docker-php-ext-install pdo_mysql \
     dom \
     xml \
