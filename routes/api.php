@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
-
+Route::get('movies',[MovieController::class,'index']);
 
 Route::middleware('auth:api')->group(function (){
 
-Route::get('movies',[MovieController::class,'index']);
+
 Route::get('movies/{movie}',[MovieController::class,'show']);
 Route::get('cinemas',[CinemasController::class,'index']);
 Route::get('cinemas/{cinemas}',[CinemasController::class,'show']);
