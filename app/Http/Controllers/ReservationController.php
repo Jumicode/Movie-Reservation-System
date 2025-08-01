@@ -93,7 +93,7 @@ class ReservationController extends Controller
             'code' => $seat->code,
         ]);
 
-        // Contenido del QR (puedes personalizarlo)
+        // Contenido del QR (puedes personalizarlo)   <img src="data:image/svg+xml;base64," alt="QR de prueba" style="width:250px;height:250px;">
         $qrContent = json_encode([
             'reservation_id' => $reservation->id,
             'user_id' => $reservation->user_id,
