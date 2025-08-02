@@ -24,14 +24,6 @@ class Movie extends Model
         return $this->hasMany(Showtime::class);
     }
 
-    public function getPosterUrlAttribute()
-    {
-        return asset('storage/' . $this->poster_path);
-    }
-    public function getPosterPathAttribute($value)
-    {
-        return asset('storage/' . $value);
-    }
     public function getPosterPath()
     {
         return $this->poster_path;

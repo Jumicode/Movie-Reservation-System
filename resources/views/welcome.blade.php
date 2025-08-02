@@ -173,32 +173,41 @@
     }
 
     function renderMovies() {
-      const grid = document.getElementById('movies-grid');
-      grid.innerHTML = '';
-      filteredMovies.forEach(movie => {
-        const div = document.createElement('div');
-        div.className = 'group relative bg-gradient-to-b from-gray-800/50 to-gray-900/80 backdrop-blur-sm rounded-3xl overflow-hidden shadow-2xl hover:shadow-yellow-400/10 transition duration-500 hover:scale-105 hover:-translate-y-2';
-        div.innerHTML = `
-          <div class="relative aspect-[2/3] overflow-hidden">
-            <img src="${movie.poster || 'https://via.placeholder.com/400x600'}" alt="${movie.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            ${movie.rating ? `<div class="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-3 py-2 rounded-xl flex items-center space-x-1 font-bold shadow-lg"><i data-feather="star" class="h-4 w-4"></i><span>${movie.rating}</span></div>` : ''}
-            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-500"><button class="bg-yellow-400/90 text-black p-4 rounded-full shadow-2xl hover:scale-110 transition duration-300"><i data-feather="play" class="h-8 w-8"></i></button></div>
+    const grid = document.getElementById('movies-grid');
+    grid.innerHTML = '';
+    filteredMovies.forEach(movie => {
+      // Decide el URL del póster según sea externo o storage
+      const posterUrl = movie.poster_path.startsWith('http')
+        ? movie.poster_path
+        : `/storage/${movie.poster_path}`;
+
+      const div = document.createElement('div');
+      div.className = 'group relative bg-gradient-to-b from-gray-800/50 to-gray-900/80 backdrop-blur-sm rounded-3xl overflow-hidden shadow-2xl hover:shadow-yellow-400/10 transition duration-500 hover:scale-105 hover:-translate-y-2';
+      div.innerHTML = `
+        <div class="relative aspect-[2/3] overflow-hidden">
+          <img
+            src="${posterUrl}"
+            alt="${movie.title}"
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          ${movie.rating ? `<div class="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-3 py-2 rounded-xl flex items-center space-x-1 font-bold shadow-lg"><i data-feather="star" class="h-4 w-4"></i><span>${movie.rating}</span></div>` : ''}
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-500"><button class="bg-yellow-400/90 text-black p-4 rounded-full shadow-2xl hover:scale-110 transition duration-300"><i data-feather="play" class="h-8 w-8"></i></button></div>
+        </div>
+        <div class="p-6">
+          <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-yellow-400 transition-colors duration-300">${movie.title}</h3>
+          ${movie.genre ? `<div class="inline-block bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full text-sm font-medium mb-3">${movie.genre}</div>` : ''}
+          ${movie.synopsis ? `<p class="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed">${movie.synopsis}</p>` : ''}
+          <div class="flex items-center justify-between text-xs text-gray-400 mb-6">
+            ${movie.duration ? `<div class="flex items-center space-x-1"><i data-feather="clock" class="h-4 w-4"></i><span>${movie.duration} min</span></div>` : ''}
+            ${movie.release_date ? `<div class="flex items-center space-x-1"><i data-feather="calendar" class="h-4 w-4"></i><span>${new Date(movie.release_date).getFullYear()}</span></div>` : ''}
           </div>
-          <div class="p-6">
-            <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-yellow-400 transition-colors duration-300">${movie.title}</h3>
-            ${movie.genre ? `<div class="inline-block bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full text-sm font-medium mb-3">${movie.genre}</div>` : ''}
-            ${movie.synopsis ? `<p class="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed">${movie.synopsis}</p>` : ''}
-            <div class="flex items-center justify-between text-xs text-gray-400 mb-6">
-              ${movie.duration ? `<div class="flex items-center space-x-1"><i data-feather="clock" class="h-4 w-4"></i><span>${movie.duration} min</span></div>` : ''}
-              ${movie.release_date ? `<div class="flex items-center space-x-1"><i data-feather="calendar" class="h-4 w-4"></i><span>${new Date(movie.release_date).getFullYear()}</span></div>` : ''}
-            </div>
-            <button class="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black py-3 rounded-xl font-bold transition duration-300 hover:shadow-lg hover:shadow-yellow-400/25 hover:scale-105">Ver Horarios</button>
-          </div>
-        `;
-        grid.appendChild(div);
-      });
-    }
+          <button class="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black py-3 rounded-xl font-bold transition duration-300 hover:shadow-lg hover:shadow-yellow-400/25 hover:scale-105">Ver Horarios</button>
+        </div>
+      `;
+      grid.appendChild(div);
+    });
+  }
 
     document.addEventListener('DOMContentLoaded', fetchMovies);
   </script>
