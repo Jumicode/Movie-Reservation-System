@@ -12,7 +12,17 @@ class HallController extends Controller
      */
     public function index()
     {
-        //
+        $halls = Hall::all();
+
+        return response()->json($halls->map(function ($hall) {
+            return [
+                'id' => $hall->id,
+                'name' => $hall->name,
+                'capacity' => $hall->capacity,
+                'created_at' => $hall->created_at,
+                'updated_at' => $hall->updated_at,
+            ];
+        }));
     }
 
     /**
@@ -36,7 +46,17 @@ class HallController extends Controller
      */
     public function show(Hall $hall)
     {
-        //
+$halls = Hall::find($hall->id);
+        if (!$halls) {
+            return response()->json(['message' => 'Hall not found'], 404);
+        }
+        return response()->json([
+            'id' => $halls->id,
+            'name' => $halls->name,
+            'capacity' => $halls->capacity,
+            'created_at' => $halls->created_at,
+            'updated_at' => $halls->updated_at,
+        ]);
     }
 
     /**
