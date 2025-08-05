@@ -6,4 +6,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::view('/halls', 'halls');
+Route::view('/showtimes', 'showtimes');
 
