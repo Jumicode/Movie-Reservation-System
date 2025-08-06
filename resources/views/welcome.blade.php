@@ -41,9 +41,10 @@
           <button class="p-2 text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-xl transition duration-200">
             <i data-feather="search" class="h-5 w-5"></i>
           </button>
-          <button class="p-2 text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-xl transition duration-200">
+          <a id="user-auth-link" href="/login" class="p-2 text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-xl transition duration-200 flex items-center space-x-2">
             <i data-feather="user" class="h-5 w-5"></i>
-          </button>
+            <span id="user-auth-label" class="hidden md:inline"></span>
+          </a>
           <button class="md:hidden p-2 text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-xl transition duration-200">
             <i data-feather="menu" class="h-5 w-5"></i>
           </button>
@@ -254,6 +255,33 @@
     };
 
     document.addEventListener('DOMContentLoaded', fetchMovies);
+
+    // Estado de autenticación en el navbar
+    function updateAuthNavbar() {
+      const token = localStorage.getItem('token');
+      const link = document.getElementById('user-auth-link');
+      const label = document.getElementById('user-auth-label');
+      if (token) {
+        label.textContent = 'Mi Cuenta';
+        link.href = "#";
+        link.onclick = function(e) {
+          e.preventDefault();
+          if (confirm('¿Cerrar sesión?')) {
+            localStorage.removeItem('token');
+            updateAuthNavbar();
+          }
+        };
+      } else {
+        label.textContent = 'Iniciar sesión';
+        link.href = "/login";
+        link.onclick = null;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      updateAuthNavbar();
+      fetchMovies();
+    });
   </script>
 </body>
 </html>
