@@ -21,6 +21,14 @@ class HallController extends Controller
                 'capacity' => $hall->capacity,
                 'created_at' => $hall->created_at,
                 'updated_at' => $hall->updated_at,
+                'seats' => $hall->seats->map(function ($seat) {
+                    return [
+                        'id' => $seat->id,
+                        'hall_id' => $seat->hall_id,
+                        'row' => $seat->row,
+                        'number' => $seat->number,
+                    ];
+                })
             ];
         }));
     }
@@ -56,6 +64,14 @@ $halls = Hall::find($hall->id);
             'capacity' => $halls->capacity,
             'created_at' => $halls->created_at,
             'updated_at' => $halls->updated_at,
+            'seats' => $halls->seats->map(function ($seat) {
+                return [
+                    'id' => $seat->id,
+                    'hall_id' => $seat->hall_id,
+                    'row' => $seat->row,
+                    'number' => $seat->number,
+                ];
+            }),
         ]);
     }
 

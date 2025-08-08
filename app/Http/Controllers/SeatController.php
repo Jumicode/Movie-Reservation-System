@@ -12,7 +12,9 @@ class SeatController extends Controller
      */
     public function index()
     {
-        //
+        $seats = Seat::all();
+
+        return response()->json($seats);
     }
 
     /**
@@ -36,7 +38,16 @@ class SeatController extends Controller
      */
     public function show(Seat $seat)
     {
-        //
+        $seat = Seat::find($seat->id);
+        if (!$seat) {
+            return response()->json(['message' => 'Seat not found'], 404);
+        }
+        return response()->json([
+            'id' => $seat->id,
+            'hall_id' => $seat->hall_id,
+            'row' => $seat->row,
+            'number' => $seat->number,
+        ]);     
     }
 
     /**

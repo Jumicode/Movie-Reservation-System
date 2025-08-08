@@ -39,23 +39,25 @@
             }
 
             document.getElementById('no-showtimes').classList.add('hidden');
-            filtered.forEach(s => {
-                const date = new Date(s.starts_at);
-                const formatted = date.toLocaleString('es-ES', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                    hour: '2-digit', minute: '2-digit'
-                });
-                const div = document.createElement('div');
-                div.className = "bg-gray-800 rounded-xl p-6 flex items-center justify-between shadow-lg";
-                div.innerHTML = `
-                    <div>
-                        <div class="text-lg font-bold text-yellow-400">Sala #${s.hall_id}</div>
-                        <div class="text-gray-300">Inicio: ${formatted}</div>
-                    </div>
-                    <a href="#" class="bg-yellow-400 text-black px-6 py-2 rounded-xl font-bold hover:bg-yellow-500 transition">Reservar</a>
-                `;
-                list.appendChild(div);
-            });
+filtered.forEach(s => {
+    const date = new Date(s.starts_at);
+    const formatted = date.toLocaleString('es-ES', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+    const div = document.createElement('div');
+    div.className = "bg-gray-800 rounded-xl p-6 flex items-center justify-between shadow-lg";
+div.innerHTML = `
+    <div>
+        <div class="text-lg font-bold text-yellow-400">Sala #${s.hall_id}</div>
+        <div class="text-gray-300">Inicio: ${formatted}</div>
+    </div>
+    <a href="/reserve?showtime_id=${s.id}&movie_id=${s.movie_id}" class="bg-yellow-400 text-black px-6 py-2 rounded-xl font-bold hover:bg-yellow-300 transition-colors">
+        Reservar
+    </a>
+`;
+    list.appendChild(div);
+});
         }
 
         document.addEventListener('DOMContentLoaded', fetchShowtimes);

@@ -9,5 +9,6 @@ Route::view('/halls', 'halls');
 Route::view('/showtimes', 'showtimes');
 Route::view('/register', 'register')->name('register');
 Route::view('/login', 'login')->name('login');
+Route::view('/reserve', 'reserve')->name('reserve');            
 
 
