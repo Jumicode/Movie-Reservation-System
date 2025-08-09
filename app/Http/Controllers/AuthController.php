@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
+
 
 class AuthController extends Controller
 {
@@ -57,4 +59,38 @@ class AuthController extends Controller
         auth()->logout();
         return response()->json(['message' => 'Successfully logged out']);
     }
+
+  // Muestra el formulario de login (GET /login)
+    public function showLoginForm()
+    {
+        return view('auth.login'); // crea resources/views/auth/login.blade.php
+    }
+
+    // Procesa login mediante sesión web (POST /login)
+    public function loginWeb(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+            return redirect()->intended('/'); // o donde quieras
+        }
+
+        return back()->withErrors([
+            'email' => 'Credenciales inválidas.',
+        ])->withInput();
+    }
+
+    // Logout (POST /logout)
+    public function logoutWeb(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/');
+    }
+
 }

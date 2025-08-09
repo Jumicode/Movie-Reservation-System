@@ -107,6 +107,13 @@
         let showtime = null;
         let movie = null;
 
+        // Obtener user id desde sesión (blade)
+        const CURRENT_USER_ID = @json(optional(auth()->user())->id);
+        if (CURRENT_USER_ID) {
+            // aseguramos que las vistas que usan localStorage obtengan el id del usuario
+            try { localStorage.setItem('user_id', CURRENT_USER_ID); } catch(e) {}
+        }
+
         // --- Helpers
         function posterUrlFromPath(path) {
             if (!path) return '/images/placeholder-poster.png';
@@ -220,44 +227,13 @@
             window.renderSelectedSeatsSummary();
         }
 
-        // --- Acción continuar: crear reserva via API
-        document.getElementById('continue-btn').addEventListener('click', async function() {
-            // simple chequeo de autenticación simulated (ajusta a tu sistema real)
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                if (confirm('Necesitas iniciar sesión para reservar. ¿Ir a login?')) window.location.href = '/login';
-                return;
-            }
-
-            if (selectedSeats.length === 0) return alert('Selecciona al menos un asiento');
-
-            const payload = {
-                user_id: Number(userId),
-                showtime_id: Number(showtimeId),
-                seats: selectedSeats,
-                price: Number((selectedSeats.length * 2.5).toFixed(2)),
-            };
-
-            try {
-                const res = await fetch('/api/reservations', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                });
-
-                if (!res.ok) {
-                    const txt = await res.text();
-                    throw new Error(txt || 'Error al crear reserva');
-                }
-
-                const json = await res.json();
-                alert('Reserva creada: ID ' + json.id + '\nCódigo QR: ' + (json.qr_code_url || 'no disponible'));
-                // redirigir a /reservations o refrescar
-                window.location.href = '/';
-            } catch (err) {
-                console.error('Reserva error:', err);
-                alert('No fue posible crear la reserva: ' + (err.message || err));
-            }
+        // --- Continuar: redirigir a checkout (el usuario ya está en sesión)
+        document.getElementById('continue-btn').addEventListener('click', function() {
+            if (selectedSeats.length === 0) return;
+            // construir query string con ids
+            const seatsParam = selectedSeats.join(',');
+            // redirigir a checkout; el checkout usará localStorage.user_id (inyectado arriba desde la sesión)
+            window.location.href = `/checkout?showtime_id=${encodeURIComponent(showtimeId)}&seats=${encodeURIComponent(seatsParam)}`;
         });
 
         // --- fetchData: obtiene showtime, movie, seats y asientos reservados
