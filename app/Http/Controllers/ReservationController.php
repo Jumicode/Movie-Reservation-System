@@ -249,5 +249,19 @@ public function show(Request $request, Reservation $reservation)
             'updated_at' => $reservation->updated_at,
         ], 201);
     }
+
+    /**
+     * Display a listing of the user's reservations in JSON format.
+     */
+    public function myReservationsJson(Request $request)
+{
+    $user = $request->user() ?: \Illuminate\Support\Facades\Auth::guard('api')->user();
+    if (! $user) {
+        return response()->json(['message' => 'Unauthenticated.'], 401);
+    }
+    $reservations = \App\Models\Reservation::with(['seats','showtime.movie','showtime.hall'])->where('user_id', $user->id)->get();
+    return response()->json($reservations);
+}
+
 }
 

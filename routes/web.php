@@ -29,4 +29,5 @@ Route::post('/logout', [AuthController::class, 'logoutWeb'])
 Route::post('/reservations/web', [ReservationController::class, 'storeWeb'])
     ->middleware('auth')
     ->name('reservations.web.store');
+Route::get('/web/reservations/json', [ReservationController::class, 'myReservationsJson']);
 
