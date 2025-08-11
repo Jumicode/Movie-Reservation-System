@@ -71,7 +71,7 @@
         <div id="payment-status" class="mt-6 text-center text-sm text-gray-300"></div>
       </div>
 
-      <!-- Right: Resumen y resultado -->
+      <!-- Right: Resumen -->
       <aside class="bg-gray-800/60 rounded-2xl p-6 shadow-lg border border-gray-700">
         <h3 class="text-lg font-semibold mb-4">Resumen de compra</h3>
         <div id="summary" class="space-y-3 text-sm text-gray-300">
@@ -83,16 +83,6 @@
             <div class="flex justify-between"><span>Subtotal</span><span id="sum-sub">$0.00</span></div>
             <div class="flex justify-between"><span>IVA</span><span id="sum-iva">$0.00</span></div>
             <div class="flex justify-between font-black text-xl mt-3"><span>Total</span><span id="sum-total">$0.00</span></div>
-          </div>
-        </div>
-
-        <div id="ticket-result" class="mt-6 hidden">
-          <h4 class="text-white font-bold mb-3">Entrada generada</h4>
-          <div id="ticket-info" class="text-sm text-gray-200"></div>
-          <div class="mt-4" id="ticket-qr"></div>
-          <div class="mt-4">
-            <button id="download-ticket" class="px-4 py-2 rounded bg-yellow-400 text-black font-bold">Descargar entrada</button>
-            <a id="go-my-res" class="ml-2 text-sm text-gray-200 hover:text-yellow-400" href="/my-reservations">Ver mis reservas</a>
           </div>
         </div>
       </aside>
@@ -137,12 +127,8 @@
     if (!showtimeId) return;
     try {
       const res = await fetch(`/api/showtimes/${showtimeId}`);
-      if (!res.ok) {
-        console.error(await res.text());
-        return;
-      }
+      if (!res.ok) return;
       const json = await res.json();
-      // si tu controller show() provee movie y hall, úsalos; si no, ajusta
       const movie = json.movie || null;
       const hall = json.hall || null;
       document.getElementById('sum-movie').textContent = movie ? movie.title : `ID ${json.movie_id || '-'}`;
@@ -151,28 +137,22 @@
         const d = new Date(json.starts_at);
         document.getElementById('sum-starts').textContent = d.toLocaleString();
       }
-    } catch(e){
-      console.error(e);
-    }
+    } catch(e){}
   }
   loadShowtimeMeta();
 
-  // Helper: mostrar estado y logs mínimos
   function setStatus(msg, isError = false) {
     const el = document.getElementById('payment-status');
     el.textContent = msg;
     el.classList.toggle('text-red-400', isError);
     el.classList.toggle('text-gray-300', !isError);
-    console.log('checkout:', msg);
   }
 
-  // Simular pago y crear reserva vía ruta web autenticada con fallback a API
   document.getElementById('pay-btn').addEventListener('click', async function(){
     const payBtn = this;
     payBtn.disabled = true;
     setStatus('Procesando pago...');
 
-    // validación mínima
     const card = document.getElementById('card-number').value.trim();
     const cvv = document.getElementById('cvv').value.trim();
     const holder = document.getElementById('holder-name').value.trim();
@@ -183,18 +163,14 @@
     }
 
     try {
-      // Simulamos demora del gateway
       await new Promise(r => setTimeout(r, 700));
 
-      // Payload
       const payload = {
         showtime_id: Number(showtimeId),
         seats: seatIds,
         price: total
       };
 
-      // 1) Intentamos crear via ruta web que usa sesión (cookies) + CSRF
-      setStatus('Intentando crear reserva con sesión web (si existe)...');
       let res = await fetch('/reservations/web', {
         method: 'POST',
         credentials: 'same-origin',
@@ -206,27 +182,18 @@
         body: JSON.stringify(payload)
       });
 
-      console.log('Respuesta /reservations/web:', res.status, res.url, 'redirected=', res.redirected);
-
-      // Detectar redirección a login (fetch sigue redirecciones por defecto)
       const redirectedToLogin = res.redirected && (res.url?.includes('/login') || res.url?.includes('login'));
-      // También tratamos 302/401/419 como "no sesión / problema"
       if (redirectedToLogin || res.status === 302 || res.status === 401 || res.status === 419) {
-        console.warn('No hay sesión válida o CSRF inválido; fallback a API con token.');
-        // Intento fallback con token + user_id en localStorage
         const token = localStorage.getItem('token');
         const user_id = localStorage.getItem('user_id');
 
         if (!token || !user_id) {
-          // No hay sesión ni token -> informamos y sugerimos login
           setStatus('No has iniciado sesión (web) ni existe token API. Por favor inicia sesión para continuar.', true);
-          // opcional: redirigir: window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
           payBtn.disabled = false;
           return;
         }
 
-        // Llamada a API con token (igual que Postman)
-        setStatus('Creando reserva usando token API...');
+        setStatus('Creando reserva ...');
         res = await fetch('/api/reservations', {
           method: 'POST',
           headers: {
@@ -243,76 +210,36 @@
         if (!res.ok) {
           let txt;
           try { txt = await res.json(); } catch (e) { txt = await res.text(); }
-          throw new Error((txt && txt.message) ? txt.message : (txt || `Error creando reserva (API). status ${res.status}`));
+          setStatus((txt && txt.message) ? txt.message : (txt || `Error creando reserva (API). status ${res.status}`), true);
+          payBtn.disabled = false;
+          return;
         }
 
-        const reservationApi = await res.json();
-        setStatus('Pago confirmado (API). Entrada generada.');
-        showTicketResult(reservationApi);
+        setStatus('Pago confirmado. Redirigiendo a tus reservas...');
+        setTimeout(() => {
+          window.location.href = '/my-reservations';
+        }, 1500);
         return;
       }
 
-      // Si no fue redirección y status OK, parseamos resultado
       if (res.ok) {
-        const reservation = await res.json();
-        setStatus('Pago confirmado. Entrada generada.');
-        showTicketResult(reservation);
+        setStatus('Pago confirmado. Redirigiendo a tus reservas...');
+        setTimeout(() => {
+          window.location.href = '/my-reservations';
+        }, 1500);
         return;
       }
 
-      // Si no OK y no fue redirect, leemos cuerpo y mostramos error
       let errBody;
       try { errBody = await res.json(); } catch (_) { errBody = await res.text(); }
-      throw new Error(errBody?.message || errBody || `Respuesta inesperada del servidor (status ${res.status})`);
+      setStatus(errBody?.message || errBody || `Respuesta inesperada del servidor (status ${res.status})`, true);
+      payBtn.disabled = false;
 
     } catch (err) {
-      console.error('checkout error:', err);
       setStatus('Error: ' + (err.message || err), true);
       payBtn.disabled = false;
     }
   });
-
-  // Mostrar resultado + QR
-  function showTicketResult(reservation) {
-    document.getElementById('ticket-result').classList.remove('hidden');
-    const info = document.getElementById('ticket-info');
-    info.innerHTML = `
-      <div><strong>ID:</strong> ${reservation.id}</div>
-      <div><strong>Precio:</strong> $${Number(reservation.price).toFixed(2)}</div>
-      <div><strong>Asientos:</strong> ${reservation.seats ? reservation.seats.map(s => s.code).join(', ') : '-'}</div>
-    `;
-
-    const qrContainer = document.getElementById('ticket-qr');
-    qrContainer.innerHTML = '';
-
-    const raw = reservation.qr_code || reservation.qr || '';
-    if (!raw) {
-      qrContainer.innerHTML = '<div class="text-sm text-yellow-400">QR no disponible</div>';
-      return;
-    }
-
-    const isBase64 = /^[A-Za-z0-9+/=\n\r]+$/.test(raw) && raw.length > 50;
-    const img = document.createElement('img');
-    img.className = 'w-48 h-48 object-contain rounded';
-    if (isBase64) img.src = 'data:image/svg+xml;base64,' + raw;
-    else if (raw.trim().startsWith('<')) img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(raw);
-    else img.src = raw;
-    qrContainer.appendChild(img);
-
-    // descarga
-    document.getElementById('download-ticket').onclick = function(){
-      let uri, filename = `ticket-${reservation.id}.svg`;
-      if (isBase64) uri = 'data:image/svg+xml;base64,' + raw;
-      else if (raw.trim().startsWith('<')) uri = 'data:image/svg+xml;utf8,' + encodeURIComponent(raw);
-      else uri = raw;
-      const a = document.createElement('a');
-      a.href = uri;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    };
-  }
 </script>
 </body>
 </html>

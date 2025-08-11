@@ -8,6 +8,9 @@
 </head>
 <body class="min-h-screen bg-gray-900 text-gray-200">
   <div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="mb-8 text-right">
+      <a href="/" class="inline-block bg-yellow-400 text-black font-bold px-6 py-2 rounded-xl shadow hover:bg-yellow-500 transition">Ir al inicio</a>
+    </div>
     <h1 class="text-3xl font-black mb-6">Mis Reservas</h1>
     <div id="reservations-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
     <div id="no-res" class="text-gray-400 mt-8 hidden">No hay reservas.</div>
@@ -128,21 +131,22 @@ function renderReservations(filtered) {
 
     const qrRaw = resv.qr_code || resv.qr || '';
     const qrDiv = document.getElementById(`qr-${resv.id}`);
-    if (qrRaw) {
-      const maybeBase64 = /^[A-Za-z0-9+/=\n\r]+$/.test(qrRaw) && qrRaw.length > 50;
+    if (qrRaw && typeof qrRaw === 'string' && qrRaw.length > 50) {
+      // base64 SVG
       const img = document.createElement('img');
       img.className = 'w-28 h-28 object-contain';
-      if (maybeBase64) img.src = 'data:image/svg+xml;base64,' + qrRaw;
-      else if (qrRaw.trim().startsWith('<')) img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(qrRaw);
-      else img.src = qrRaw;
+      if (qrRaw.startsWith('<svg')) {
+        img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(qrRaw);
+      } else {
+        img.src = 'data:image/svg+xml;base64,' + qrRaw;
+      }
       qrDiv.appendChild(img);
 
       card.querySelector('.download').addEventListener('click', (e) => {
         e.preventDefault();
         let uri;
-        if (maybeBase64) uri = 'data:image/svg+xml;base64,' + qrRaw;
-        else if (qrRaw.trim().startsWith('<')) uri = 'data:image/svg+xml;utf8,' + encodeURIComponent(qrRaw);
-        else uri = qrRaw;
+        if (qrRaw.startsWith('<svg')) uri = 'data:image/svg+xml;utf8,' + encodeURIComponent(qrRaw);
+        else uri = 'data:image/svg+xml;base64,' + qrRaw;
         const a = document.createElement('a');
         a.href = uri;
         a.download = `ticket-${resv.id}.svg`;
