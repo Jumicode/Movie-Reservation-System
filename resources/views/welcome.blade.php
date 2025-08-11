@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -28,27 +28,43 @@
             CINEMA<span class="text-yellow-400">HUB</span>
           </div>
         </div>
+
         <nav class="hidden md:flex space-x-8">
-        @foreach(['Cartelera','Próximamente','Promociones','Salas','Experiencias'] as $i => $item)
-  <a href="{{ $item === 'Salas' ? url('/halls') : '#' }}"
-     class="relative text-sm font-semibold transition duration-300 hover:text-yellow-400 {{ $i===0?'text-yellow-400':'text-gray-300' }} group">
-    {{ $item }}
-    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-400 group-hover:w-full transition-all duration-300"></span>
-  </a>
-@endforeach
+          @foreach(['Cartelera','Próximamente','Promociones','Salas','Experiencias'] as $i => $item)
+            <a href="{{ $item === 'Salas' ? url('/halls') : '#' }}"
+               class="relative text-sm font-semibold transition duration-300 hover:text-yellow-400 {{ $i===0?'text-yellow-400':'text-gray-300' }} group">
+              {{ $item }}
+              <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-400 group-hover:w-full transition-all duration-300"></span>
+            </a>
+          @endforeach
         </nav>
-        <div class="flex items-center space-x-4">
+
+        {{-- Right actions + user dropdown wrapper --}}
+        <div class="flex items-center space-x-4 relative">
           <button class="p-2 text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-xl transition duration-200">
             <i data-feather="search" class="h-5 w-5"></i>
           </button>
-          <a id="user-auth-link" href="/login" class="p-2 text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-xl transition duration-200 flex items-center space-x-2">
-            <i data-feather="user" class="h-5 w-5"></i>
-            <span id="user-auth-label" class="hidden md:inline"></span>
-          </a>
+
+          <!-- user entry: muestra nombre y dropdown -->
+          <div class="relative" id="user-menu-wrapper">
+            <a id="user-auth-link" href="/login"
+               class="p-2 text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-xl transition duration-200 flex items-center space-x-2">
+              <i data-feather="user" class="h-5 w-5"></i>
+              <span id="user-auth-label" class="hidden md:inline">Iniciar sesión</span>
+              <svg id="user-caret" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 text-gray-300 hidden md:inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+            </a>
+
+            <!-- dropdown -->
+            <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-48 bg-gray-800 rounded-xl shadow-lg border border-gray-700 z-50 overflow-hidden">
+              <!-- contenido dinámico -->
+            </div>
+          </div>
+
           <button class="md:hidden p-2 text-gray-300 hover:text-yellow-400 hover:bg-yellow-400/10 rounded-xl transition duration-200">
             <i data-feather="menu" class="h-5 w-5"></i>
           </button>
         </div>
+
       </div>
     </div>
   </header>
@@ -102,7 +118,7 @@
     </div>
   </section>
 
-  <!-- Modal para detalles de película -->
+  <!-- Modal para detalles de película (igual que antes) -->
   <div id="movie-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden">
     <div class="bg-gray-900 rounded-2xl shadow-2xl max-w-lg w-full p-8 relative">
       <button id="close-modal" class="absolute top-4 right-4 text-gray-400 hover:text-yellow-400">
@@ -115,7 +131,7 @@
     </div>
   </div>
 
-  {{-- Footer --}}
+  {{-- Footer (igual que antes) --}}
   <footer class="bg-gradient-to-t from-black to-gray-900 border-t border-gray-800/50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 md:grid-cols-4 gap-12 text-gray-400">
       <div class="md:col-span-2">
@@ -166,6 +182,7 @@
         movies = await res.json();
         const genres = ['all', ...new Set(movies.map(m => m.genre).filter(Boolean))];
         const filtersDiv = document.getElementById('genre-filters');
+        filtersDiv.innerHTML = '';
         genres.forEach(genre => {
           const btn = document.createElement('button');
           btn.textContent = genre === 'all' ? 'Todas' : genre;
@@ -191,9 +208,9 @@
       const grid = document.getElementById('movies-grid');
       grid.innerHTML = '';
       filteredMovies.forEach(movie => {
-        const posterUrl = movie.poster_path.startsWith('http')
+        const posterUrl = (movie.poster_path && movie.poster_path.startsWith('http'))
           ? movie.poster_path
-          : `/storage/${movie.poster_path}`;
+          : (movie.poster_path ? `/storage/${movie.poster_path}` : 'https://via.placeholder.com/400x600');
 
         const div = document.createElement('div');
         div.className = 'group relative bg-gradient-to-b from-gray-800/50 to-gray-900/80 backdrop-blur-sm rounded-3xl overflow-hidden shadow-2xl hover:shadow-yellow-400/10 transition duration-500 hover:scale-105 hover:-translate-y-2';
@@ -213,7 +230,6 @@
           <div class="p-6">
             <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-yellow-400 transition-colors duration-300">${movie.title}</h3>
             ${movie.genre ? `<div class="inline-block bg-gray-700/50 text-gray-300 px-3 py-1 rounded-full text-sm font-medium mb-3">${movie.genre}</div>` : ''}
-            ${movie.synopsis ? `<p class="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed">${movie.synopsis}</p>` : ''}
             <div class="flex items-center justify-between text-xs text-gray-400 mb-6">
               ${movie.duration ? `<div class="flex items-center space-x-1"><i data-feather="clock" class="h-4 w-4"></i><span>${movie.duration} min</span></div>` : ''}
               ${movie.release_date ? `<div class="flex items-center space-x-1"><i data-feather="calendar" class="h-4 w-4"></i><span>${new Date(movie.release_date).getFullYear()}</span></div>` : ''}
@@ -235,7 +251,7 @@
     }
 
     function showMovieModal(movie) {
-      document.getElementById('modal-poster').src = movie.poster_path.startsWith('http') ? movie.poster_path : `/storage/${movie.poster_path}`;
+      document.getElementById('modal-poster').src = (movie.poster_path && movie.poster_path.startsWith('http')) ? movie.poster_path : (movie.poster_path ? `/storage/${movie.poster_path}` : 'https://via.placeholder.com/200x300');
       document.getElementById('modal-title').textContent = movie.title;
       document.getElementById('modal-description').textContent = movie.description || movie.synopsis || '';
       document.getElementById('movie-modal').classList.remove('hidden');
@@ -254,34 +270,119 @@
       if (e.target === this) this.classList.add('hidden');
     };
 
-    document.addEventListener('DOMContentLoaded', fetchMovies);
+    document.addEventListener('DOMContentLoaded', () => {
+      updateAuthNavbar();
+      fetchMovies();
 
-    // Estado de autenticación en el navbar
-    function updateAuthNavbar() {
+      // click fuera del dropdown lo cierra
+      document.addEventListener('click', (ev) => {
+        const w = document.getElementById('user-menu-wrapper');
+        const dd = document.getElementById('user-dropdown');
+        if (!w.contains(ev.target)) {
+          dd.classList.add('hidden');
+        }
+      });
+    });
+
+    // ---------- AUTH NAVBAR ----------
+    async function updateAuthNavbar() {
       const token = localStorage.getItem('token');
       const link = document.getElementById('user-auth-link');
       const label = document.getElementById('user-auth-label');
+      const dropdown = document.getElementById('user-dropdown');
+
+      // limpiar dropdown
+      dropdown.innerHTML = '';
+
       if (token) {
-        label.textContent = 'Mi Cuenta';
-        link.href = "#";
+        // intentar leer usuario guardado
+        let user = null;
+        try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch(e) { user = null; }
+
+        // si no hay user en localStorage, pedir /api/me con token
+        if (!user) {
+          try {
+            const res = await fetch('/api/me', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token
+              }
+            });
+            if (res.ok) {
+              user = await res.json();
+              localStorage.setItem('user', JSON.stringify(user));
+              if (user.id) localStorage.setItem('user_id', user.id);
+            }
+          } catch (e) {
+            // no pasa nada; mostramos fallback
+            console.warn('No se pudo obtener user desde /api/me', e);
+          }
+        }
+
+        const display = (user && (user.name || user.email)) ? (user.name || user.email) : 'Mi cuenta';
+        label.textContent = display;
+        document.getElementById('user-caret').classList.remove('hidden');
+
+        // abrir dropdown al click
+        link.href = '#';
         link.onclick = function(e) {
           e.preventDefault();
-          if (confirm('¿Cerrar sesión?')) {
-            localStorage.removeItem('token');
-            updateAuthNavbar();
-          }
+          dropdown.classList.toggle('hidden');
         };
+
+        // contenido del dropdown
+        dropdown.innerHTML = `
+          <div class="px-1 py-2">
+            <div class="px-4 py-2 text-sm text-gray-400">Conectado como</div>
+            <div class="px-4 py-2 text-sm text-white font-semibold truncate">${escapeHtml(display)}</div>
+            <div class="border-t border-gray-700 my-2"></div>
+            <a href="/my-reservations" class="block px-4 py-2 text-sm hover:bg-gray-700">Mis reservas</a>
+            <a href="/checkout" id="dropdown-logout" class="block px-4 py-2 text-sm hover:bg-gray-700">Cerrar sesión</a>
+          </div>
+        `;
+
+        // logout handler
+        const logoutLink = document.getElementById('dropdown-logout');
+        logoutLink.onclick = async function(ev) {
+          ev.preventDefault();
+          // opcional: llamar al logout de la API
+          try {
+            await fetch('/api/logout', {
+              method: 'POST',
+              headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token },
+            });
+          } catch (e) {
+            // ignora errores
+          }
+          // limpiar client-side
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('user_id');
+          // redirigir al login o refrescar la página
+          window.location.href = '/login';
+        };
+
       } else {
+        // no token -> mostrar link a login
         label.textContent = 'Iniciar sesión';
-        link.href = "/login";
+        document.getElementById('user-caret').classList.add('hidden');
+        link.href = '/login';
         link.onclick = null;
+        dropdown.classList.add('hidden');
       }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-      updateAuthNavbar();
-      fetchMovies();
-    });
+    // util
+    function escapeHtml(unsafe) {
+      return String(unsafe)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#039;');
+    }
   </script>
 </body>
 </html>
