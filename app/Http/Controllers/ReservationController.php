@@ -259,8 +259,39 @@ public function show(Request $request, Reservation $reservation)
     if (! $user) {
         return response()->json(['message' => 'Unauthenticated.'], 401);
     }
-    $reservations = \App\Models\Reservation::with(['seats','showtime.movie','showtime.hall'])->where('user_id', $user->id)->get();
-    return response()->json($reservations);
+    $reservations = \App\Models\Reservation::with(['seats','showtime.movie','showtime.hall'])
+        ->where('user_id', $user->id)
+        ->get();
+
+    // Generar QR para cada reserva
+    $result = $reservations->map(function ($reservation) {
+        $seats = $reservation->seats->map(fn($seat) => [
+            'id'   => $seat->id,
+            'code' => $seat->code,
+        ]);
+        $qrContent = json_encode([
+            'reservation_id' => $reservation->id,
+            'user_id' => $reservation->user_id,
+            'showtime_id' => $reservation->showtime_id,
+            'seats' => $seats,
+            'price' => $reservation->price,
+        ]);
+        $qrImage = base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(250)->generate($qrContent));
+
+        return [
+            'id'           => $reservation->id,
+            'user_id'      => $reservation->user_id,
+            'showtime_id'  => $reservation->showtime_id,
+            'price'        => $reservation->price,
+            'seats'        => $seats,
+            'qr_code'      => $qrImage,
+            'created_at'   => $reservation->created_at,
+            'updated_at'   => $reservation->updated_at,
+            'showtime'     => $reservation->showtime,
+        ];
+    });
+
+    return response()->json($result);
 }
 
 }
