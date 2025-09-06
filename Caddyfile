@@ -1,0 +1,12 @@
+:80 {
+  root * /var/www/html/public
+
+  # Comprime las respuestas
+  encode gzip
+
+  # Configura PHP-FPM
+  php_fastcgi localhost:9000
+
+  # Sirve los archivos estáticos
+  file_server
+}

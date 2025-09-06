@@ -1,13 +1,12 @@
 # Usamos una imagen base de PHP 8.2 FPM Alpine
 FROM php:8.2-fpm-alpine
 
-# Establecemos el directorio de trabajo dentro del contenedor
+# Establecemos el directorio de trabajo
 WORKDIR /var/www/html
 
-# Instalamos las dependencias del sistema necesarias
-# Añadimos las extensiones necesarias para Filament
+# Instalamos las dependencias del sistema, incluyendo Caddy
 RUN apk add --no-cache \
-    nginx \
+    caddy \
     oniguruma-dev \
     libxml2-dev \
     libpng-dev \
@@ -21,31 +20,33 @@ RUN apk add --no-cache \
     jpeg-dev \
     icu-dev
 
-# Instalamos las extensiones de PHP requeridas para tu aplicación, incluyendo intl
+# Instalamos las extensiones de PHP, incluyendo intl
 RUN docker-php-ext-configure gd --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo_pgsql pdo_mysql mbstring exif pcntl bcmath gd zip intl
 
-# Copiamos los archivos de la aplicación al contenedor.
+# Copiamos todos los archivos de la aplicación al contenedor
 COPY . .
 
-# Copiamos el binario de Composer.
+# Copiamos el binario de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Asignamos los permisos correctos al directorio de la aplicación antes de la instalación de dependencias.
-# Esto previene el error de "dubious ownership".
+# Asignamos los permisos correctos
 RUN chown -R www-data:www-data /var/www/html
 
-# Cambiamos al usuario www-data para las siguientes operaciones
+# Cambiamos al usuario www-data para instalar dependencias de Composer
 USER www-data
 
 # Instalamos las dependencias de la aplicación
-RUN composer install --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader
 
-# Volvemos al usuario root para los siguientes comandos
+# Copiamos el Caddyfile al contenedor
+COPY Caddyfile /etc/caddy/Caddyfile
+
+# Volvemos al usuario root
 USER root
 
-# Exponemos el puerto 9000 para que Nginx se pueda comunicar con PHP-FPM
-EXPOSE 9000
+# Expone el puerto por defecto de Caddy, que es 80
+EXPOSE 80
 
-# El comando de inicio para el contenedor, que ejecuta PHP-FPM
-CMD ["php-fpm"]
+# Comando para iniciar Caddy y PHP-FPM
+CMD ["/bin/bash", "-c", "caddy run --config /etc/caddy/Caddyfile & php-fpm"]
