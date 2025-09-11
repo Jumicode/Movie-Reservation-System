@@ -14,19 +14,31 @@ class ReservationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+public function index(Request $request)
 {
     $user = $request->user();
 
-    $reservations = Reservation::with('seats')
-        ->where('user_id', $user->id)
+    // Obtener las relaciones que se deben cargar de la solicitud
+    $with = array_filter(explode(',', $request->input('with', '')));
+
+    // Define las relaciones que se cargan por defecto
+    $defaultWith = ['seats'];
+
+    // Si se solicitan relaciones específicas, úsalas. De lo contrario, usa las predeterminadas.
+    $relationsToLoad = array_merge($defaultWith, $with);
+    
+    // Carga las reservas con las relaciones especificadas
+    $reservations = Reservation::where('user_id', $user->id)
+        ->with($relationsToLoad)
         ->get();
 
+    // Ahora, el código para formatear la respuesta
     $result = $reservations->map(function ($reservation) {
         $seats = $reservation->seats->map(fn($seat) => [
             'id'   => $seat->id,
             'code' => $seat->code,
         ]);
+
         $qrContent = json_encode([
             'reservation_id' => $reservation->id,
             'user_id' => $reservation->user_id,
@@ -36,7 +48,8 @@ class ReservationController extends Controller
         ]);
         $qrImage = base64_encode(QrCode::format('svg')->size(250)->generate($qrContent));
 
-        return [
+        // Construir el array de respuesta
+        $responseArray = [
             'id'           => $reservation->id,
             'showtime_id'  => $reservation->showtime_id,
             'price'        => $reservation->price,
@@ -45,6 +58,13 @@ class ReservationController extends Controller
             'created_at'   => $reservation->created_at,
             'updated_at'   => $reservation->updated_at,
         ];
+
+        // Agregar dinámicamente las relaciones si existen
+        if ($reservation->relationLoaded('showtime')) {
+            $responseArray['showtime'] = $reservation->showtime;
+        }
+
+        return $responseArray;
     });
 
     return response()->json($result);
